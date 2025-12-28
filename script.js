@@ -1,5 +1,4 @@
-console.log("App Started");
-
+console.log("App Started");console.log("Using model: gemini-3-flash");
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // 1. UPDATED API KEY
@@ -113,7 +112,7 @@ async function generateDossier(input) {
   try {
     const genAI = new GoogleGenerativeAI(API_KEY);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-pro"
+      model: "gemini-3-flash"
     });
     
     const prompt = `
@@ -193,12 +192,15 @@ JSON ප්‍රතිදානය (සම්පූර්ණ JSON වස්ත�
       generationConfig: {
         temperature: 0.8,
         responseMimeType: "application/json",
+        thinking: {
+          type: "enabled"
+        }
       }
     });
     
     const response = await result.response;
     const jsonStr = response.text();
-    console.log("AI Response:", jsonStr);
+    console.log("AI Response received from gemini-3-flash");
     
     const data = JSON.parse(jsonStr);
     currentReport = data;
