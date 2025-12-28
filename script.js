@@ -1,4 +1,5 @@
-console.log("App Started");console.log("Using model: gemini-3-flash");
+console.log("App Started");
+console.log("Using model: gemini-3-flash");
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // 1. UPDATED API KEY
@@ -97,6 +98,9 @@ dossierForm.addEventListener('submit', async (e) => {
 
 function showError(message) {
   errorMessage.textContent = message;
+  errorMessage.style.backgroundColor = '#fee2e2';
+  errorMessage.style.color = '#991b1b';
+  errorMessage.style.border = '1px solid #dc2626';
   errorMessage.classList.remove('hidden');
   setTimeout(() => {
     errorMessage.classList.add('hidden');
@@ -189,20 +193,28 @@ JSON ප්‍රතිදානය (සම්පූර්ණ JSON වස්ත�
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
+      thinkingConfig: {
+        includeThoughts: true,
+        thinkingLevel: "high"
+      },
       generationConfig: {
-        temperature: 0.8,
-        responseMimeType: "application/json",
-        thinking: {
-          type: "enabled"
-        }
+        temperature: 0.7,
+        responseMimeType: "application/json"
       }
     });
     
     const response = await result.response;
     const jsonStr = response.text();
     console.log("AI Response received from gemini-3-flash");
-    
-    const data = JSON.parse(jsonStr);
+    console.log("Raw response text:", jsonStr);
+
+    let data;
+    try {
+      data = JSON.parse(jsonStr);
+    } catch (parseError) {
+      console.error("Failed to parse JSON:", parseError);
+      throw new Error("The AI response was not valid JSON. Please try again.");
+    }
     currentReport = data;
     
     renderReport(input, data);
