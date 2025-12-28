@@ -2,7 +2,7 @@ console.log("App Started");
 console.log("Using model: gemini-3-flash");
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 1. UPDATED API KEY
+// API KEY
 const API_KEY = "AIzaSyCBRtRgiN1BiGhlQdlpyNdbbKnpQUDsbiw";
 
 // Planet metadata
@@ -46,7 +46,6 @@ langToggle.addEventListener('click', () => {
 function updateLanguage() {
   const isSinhala = currentLanguage === 'si';
   
-  // Toggle language visibility
   document.querySelectorAll('.lang-en').forEach(el => {
     el.classList.toggle('hidden', isSinhala);
   });
@@ -54,16 +53,13 @@ function updateLanguage() {
     el.classList.toggle('hidden', !isSinhala);
   });
   
-  // Update toggle knob
   toggleKnob.classList.toggle('active', isSinhala);
   
-  // Update language labels
   document.getElementById('langEn').classList.toggle('font-bold', !isSinhala);
   document.getElementById('langEn').classList.toggle('opacity-50', isSinhala);
   document.getElementById('langSi').classList.toggle('font-bold', isSinhala);
   document.getElementById('langSi').classList.toggle('opacity-50', !isSinhala);
   
-  // Update select options
   const genderSelect = document.getElementById('gender');
   Array.from(genderSelect.options).forEach(option => {
     if (isSinhala && option.dataset.si) {
@@ -168,7 +164,7 @@ async function generateDossier(input) {
    - ශ්‍රී ලංකාවේ සංස්කෘතික හා සමාජ-ආර්ථික තත්ත්වය
    - තාක්ෂණ අවධියේ තත්ත්වය
 
-4. CHART DATA - අවසානයේ හතර කේන්දරය:
+7. CHART DATA - අවසානයේ හතර කේන්දරය:
    - උපන් දිනය හා වේලාව අනුව සත්‍ය ජ්‍යෝතිෂ් ගණනයක් කර ග්‍රහ පිහිටීම් තීරණය කරන්න
    - 12 භව සඳහා ග්‍රහ බෙදා හරින්න (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu)
 
@@ -191,17 +187,20 @@ JSON ප්‍රතිදානය (සම්පූර්ණ JSON වස්ත�
 සියලුම ප්‍රතිචාර රාජකාරි සිංහලෙන් ලබා දෙන්න. JSON ව්‍යුහය නිවැරදිව පවත්වා ගන්න.
 `;
 
-    const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+    const request = {
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
       thinkingConfig: {
         includeThoughts: true,
-        thinkingLevel: "high"
+        thinkingLevel: "high" 
       },
       generationConfig: {
         temperature: 0.7,
+        maxOutputTokens: 4000,
         responseMimeType: "application/json"
       }
-    });
+    };
+
+    const result = await model.generateContent(request);
     
     const response = await result.response;
     const jsonStr = response.text();
@@ -471,41 +470,3 @@ function renderHouseDetailPanel(data, language) {
               </div>
             `).join('') : `<p style="font-size: 0.875rem; font-style: italic; color: #8d6e63;">${isSinhala ? 'ග්‍රහයන් නොමැත' : 'No planets in this house'}</p>`}
           </div>
-        </div>
-        <div class="house-description">
-          <p>${isSinhala ? desc.si : desc.en}</p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Handle house selection
-document.addEventListener('click', (e) => {
-  const housePath = e.target.closest('.house-path');
-  if (housePath) {
-    const houseNum = parseInt(housePath.dataset.house);
-    selectedHouse = selectedHouse === houseNum ? null : houseNum;
-    if (currentReport) {
-      renderReport({ 
-        name: document.getElementById('name').value, 
-        birthDate: document.getElementById('birthDate').value, 
-        birthTime: document.getElementById('birthTime').value,
-        language: currentLanguage 
-      }, currentReport);
-    }
-  }
-});
-
-// Reset App
-window.resetApp = function() {
-  formSection.classList.remove('hidden');
-  reportSection.classList.add('hidden');
-  currentReport = null;
-  selectedHouse = null;
-  dossierForm.reset();
-  errorMessage.classList.add('hidden');
-};
-
-// Initialize
-updateLanguage();
