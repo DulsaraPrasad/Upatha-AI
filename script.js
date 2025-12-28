@@ -2,11 +2,8 @@ console.log("App Started");
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// 1. HARDCODED API KEY - Replace with your actual key
-const GEMINI_API_KEY = "AIzaSyBLdn4EsHcp6etwtfTpERV6WSTQOYN-HOU";
-const MODEL_PRIMARY = "gemini-3-deep-think";
-const MODEL_FALLBACK = "gemini-3-flash";
-const MODEL_LEGACY = "gemini-2.0-flash";
+// 1. UPDATED API KEY
+const API_KEY = "AIzaSyCBRtRgiN1BiGhlQdlpyNdbbKnpQUDsbiw";
 
 // Planet metadata
 const PLANET_METADATA = {
@@ -113,13 +110,14 @@ async function generateDossier(input) {
   generateBtn.disabled = true;
   errorMessage.classList.add('hidden');
   
-  const genAI = new GoogleGenerativeAI({
-    apiKey: GEMINI_API_KEY,
-    apiVersion: "v1beta"
-  });
-
-  const sakalakalaPrompt = `
-ඔබ "සැකලකල" (Sakalakala) විශ්ලේෂකයෙක්. උපතේ සිට අනාගතය දක්වා සියලුම අංශ ගැඹුරු සිංහලින් විග්‍රහ කරන්න (රාජකාරි/අභ්‍යාස භාෂාව, ගුණාත්මක, 800+ වචන එකතුව).
+  try {
+    const genAI = new GoogleGenerativeAI(API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-2.0-flash-exp"
+    });
+    
+    const prompt = `
+ඔබ "සැකලකල" (Sakalakala) විශ්ලේෂකයෙක්. උපතේ සිට අනාගතය දක්වා සියලුම අංශ ගැඹුරු රාජකාරි සිංහලින් විග්‍රහ කරන්න.
 
 උපන් විස්තර:
 - නම: ${input.name}
@@ -127,65 +125,81 @@ async function generateDossier(input) {
 - උපන් දිනය: ${input.birthDate}
 - උපන් වේලාව: ${input.birthTime}
 
-කාර්යය:
-1) සත්‍යමය වේද ජ්‍යෝතිෂ් ගණනයක් සිතා Lagna (Ascendant) හා ග්‍රහ පිහිටීම් තීරණය කර Hathara Kendraya 12 භව වල ග්‍රහ විඛ්‍යාපනය කරන්න.
-2) මෙම ග්‍රහ පිහිටීම් මත පදනම්ව පහත සිංහල ශීර්ෂයන් යටතේ විස්තර කරන්න:
-   - ලග්නය (Lagna): උඩඟු/මානසික මූල ගුණ හා 1 වන භාවයෙහි බලපෑම්.
-   - අධ්‍යාපනය (Education): 4/5 භව බලපෑම්, ඉගෙනීමේ රටා, වෘත්තීය යෝග්‍යතා.
-   - විවාහය සහ සහකරු (Marriage & Partner): 7 වන භාවය අනුව සහකරුගේ ගුණාංග සහ ගෘහස්ථ ජීවිතය.
-   - සෞඛ්‍යය (Health): 6/8 භව බලපෑම් මත ශාරීරික ශක්ති හා අවධානය කළ යුතු අංශ.
-   - අනාගතය (Future Outlook): දශක අනුව (0-10, 11-20, ... 71-80) ගමන, අභියෝග හා අවස්ථා.
-   - ඓතිහාසික පසුබිම (Historical Era): උපන් වසරේ ලෝක/දේශීය ඉතිහාසය, ශ්‍රී ලංකා සංස්කෘතික/සමාජ-ආර්ථික තත්ත්වය, තාක්ෂණ තත්ත්වය.
-3) Hathara Kendraya JSON දත්තය අවසානයේ එකම JSON වස්තුවක අවසන් යතුර ලෙස ලබා දෙන්න.
+කරුණාකර පහත සිංහල ශීර්ෂයන් යටතේ සම්පූර්ණ විශ්ලේෂණයක් ලබා දෙන්න (එක් එක් කොටස් 250-350 වචන):
 
-ප්‍රතිදානය:
-- එකම JSON වස්තුවක් ලෙස, හිස් පේළි නැතිව, Hathara Kendraya අවසානයේ යතුරක් ලෙස.
-- උදාහරණ ව්‍යුහය:
+1. ලග්නය (Lagna/Ascendant Analysis):
+   - උපන් වේලාව හා දිනය අනුව ලග්න රාශිය තීරණය කරන්න
+   - පෞරුෂය, ශාරීරික ලක්ෂණ, මානසික ගුණාංග විස්තර කරන්න
+   - 1 වන භාවයේ බලපෑම් විග්‍රහ කරන්න
+
+2. අධ්‍යාපනය (Education & Career):
+   - 4 වන සහ 5 වන භාව බලපෑම් අනුව අධ්‍යාපන ශක්‍යතාව
+   - වඩාත් සුදුසු වෘත්තීය ක්ෂේත්‍ර
+   - ඉගෙනීමේ රටා සහ බුද්ධි ශක්‍යතා
+
+3. විවාහය සහ සහකරු (Marriage & Partner):
+   - 7 වන භාවයේ බලපෑම් අනුව සහකරුගේ ස්වභාවය
+   - සහකරුගේ ගුණාංග, පෞරුෂය, ශාරීරික ලක්ෂණ
+   - විවාහ ජීවිතය හා සබඳතා ගතිකත්වය
+
+4. සෞඛ්‍යය (Health & Vitality):
+   - 6 වන සහ 8 වන භාව බලපෑම් අනුව ශාරීරික ශක්තිය
+   - අවධානය යොමු කළ යුතු සෞඛ්‍ය අංශ
+   - නිරෝගී ජීවන රටා පිළිබඳ යෝජනා
+
+5. අනාගතය (Future Outlook):
+   - දශක අනුව ජීවන ගමන් විස්තරය:
+     * 0-10 වයස: ළමා කාලය
+     * 11-20 වයස: යෞවන කාලය
+     * 21-30 වයස: වැඩිහිටි ජීවිතයේ ආරම්භය
+     * 31-40 වයස: වෘත්තීය හා පෞද්ගලික වර්ධනය
+     * 41-50 වයස: මධ්‍ය වයස අභියෝග හා අවස්ථා
+     * 51-60 වයස: පරිණත කාලය
+     * 61-70 වයස: වැඩිහිටි කාලය
+     * 71-80 වයස: ප්‍රඥාවේ කාලය
+   - ප්‍රධාන අභියෝග හා අවස්ථා
+   - සමස්ත ධනාත්මක සාරාංශය
+
+6. ඓතිහාසික පසුබිම (Historical Era):
+   - උපන් වසරේ ලෝක ප්‍රධාන සිදුවීම්
+   - ශ්‍රී ලංකාවේ සංස්කෘතික හා සමාජ-ආර්ථික තත්ත්වය
+   - තාක්ෂණ අවධියේ තත්ත්වය
+
+4. CHART DATA - අවසානයේ හතර කේන්දරය:
+   - උපන් දිනය හා වේලාව අනුව සත්‍ය ජ්‍යෝතිෂ් ගණනයක් කර ග්‍රහ පිහිටීම් තීරණය කරන්න
+   - 12 භව සඳහා ග්‍රහ බෙදා හරින්න (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu)
+
+JSON ප්‍රතිදානය (සම්පූර්ණ JSON වස්තුවක් ලෙස):
 {
-  "ලග්නය": "...",
-  "අධ්‍යාපනය": "...",
-  "විවාහය සහ සහකරු": "...",
-  "සෞඛ්‍යය": "...",
-  "අනාගතය": "...",
-  "ඓතිහාසික පසුබිම": "...",
+  "ලග්නය": "විස්තරය මෙහි...",
+  "අධ්‍යාපනය": "විස්තරය මෙහි...",
+  "විවාහය සහ සහකරු": "විස්තරය මෙහි...",
+  "සෞඛ්‍යය": "විස්තරය මෙහි...",
+  "අනාගතය": "විස්තරය මෙහි...",
+  "ඓතිහාසික පසුබිම": "විස්තරය මෙහි...",
   "hatharaKendraya": [
     { "house": 1, "planets": ["Sun", "Mercury"] },
+    { "house": 2, "planets": [] },
     ...
     { "house": 12, "planets": ["Saturn"] }
   ]
 }
+
+සියලුම ප්‍රතිචාර රාජකාරි සිංහලෙන් ලබා දෙන්න. JSON ව්‍යුහය නිවැරදිව පවත්වා ගන්න.
 `;
 
-  async function runModel(modelId) {
-    const model = genAI.getGenerativeModel({ model: modelId });
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: sakalakalaPrompt }] }],
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.8,
         responseMimeType: "application/json",
       }
     });
+    
     const response = await result.response;
-    return response.text();
-  }
-
-  try {
-    let jsonStr;
-    try {
-      jsonStr = await runModel(MODEL_PRIMARY);
-    } catch (err) {
-      if (err?.message?.includes("404") || err?.message?.toLowerCase?.().includes("not found")) {
-        try {
-          jsonStr = await runModel(MODEL_FALLBACK);
-        } catch (fallbackErr) {
-          jsonStr = await runModel(MODEL_LEGACY);
-        }
-      } else {
-        throw err;
-      }
-    }
-
+    const jsonStr = response.text();
     console.log("AI Response:", jsonStr);
+    
     const data = JSON.parse(jsonStr);
     currentReport = data;
     
@@ -195,7 +209,17 @@ async function generateDossier(input) {
     
   } catch (error) {
     console.error("Error generating dossier:", error);
-    showError(error.message || "An unexpected error occurred while generating the dossier.");
+    let errorMsg = "An unexpected error occurred while generating the dossier.";
+    
+    if (error.message?.includes("API_KEY_INVALID")) {
+      errorMsg = "Invalid API key. Please check your Gemini API key configuration.";
+    } else if (error.message?.includes("404")) {
+      errorMsg = "Model not found. Please check the model name.";
+    } else if (error.message) {
+      errorMsg = error.message;
+    }
+    
+    showError(errorMsg);
   } finally {
     loadingOverlay.classList.add('hidden');
     generateBtn.disabled = false;
@@ -222,49 +246,49 @@ function renderReport(input, report) {
     <div class="report-section-wrapper section-border-left">
       <h3 class="section-title">
         <span class="section-number">01.</span>
-        ${isSinhala ? 'ඓතිහාසික පසුබිම' : 'Historical Era'}
+        ${isSinhala ? 'ලග්නය' : 'Ascendant (Lagna)'}
       </h3>
-      <div class="section-content first-letter">${report["ඓතිහාසික පසුබිම"] || ''}</div>
+      <div class="section-content first-letter">${report["ලග්නය"] || report.lagna || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-right">
       <h3 class="section-title right">
-        ${isSinhala ? 'ලග්නය' : 'Ascendant (Lagna)'}
+        ${isSinhala ? 'අධ්‍යාපනය' : 'Education & Career'}
         <span class="section-number">02.</span>
       </h3>
-      <div class="section-content">${report["ලග්නය"] || ''}</div>
+      <div class="section-content">${report["අධ්‍යාපනය"] || report.education || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-left">
       <h3 class="section-title">
         <span class="section-number">03.</span>
-        ${isSinhala ? 'අධ්‍යාපනය' : 'Education'}
+        ${isSinhala ? 'විවාහය සහ සහකරු' : 'Marriage & Partner'}
       </h3>
-      <div class="section-content">${report["අධ්‍යාපනය"] || ''}</div>
+      <div class="section-content">${report["විවාහය සහ සහකරු"] || report.marriageAndPartner || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-right">
       <h3 class="section-title right">
-        ${isSinhala ? 'විවාහය සහ සහකරු' : 'Marriage & Partner'}
+        ${isSinhala ? 'සෞඛ්‍යය' : 'Health & Vitality'}
         <span class="section-number">04.</span>
       </h3>
-      <div class="section-content">${report["විවාහය සහ සහකරු"] || ''}</div>
+      <div class="section-content">${report["සෞඛ්‍යය"] || report.health || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-left">
       <h3 class="section-title">
         <span class="section-number">05.</span>
-        ${isSinhala ? 'සෞඛ්‍යය' : 'Health'}
+        ${isSinhala ? 'අනාගතය' : 'Future Outlook'}
       </h3>
-      <div class="section-content">${report["සෞඛ්‍යය"] || ''}</div>
+      <div class="section-content">${report["අනාගතය"] || report.futureOutlook || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-right">
       <h3 class="section-title right">
-        ${isSinhala ? 'අනාගතය' : 'Future Outlook'}
+        ${isSinhala ? 'ඓතිහාසික පසුබිම' : 'Historical Era'}
         <span class="section-number">06.</span>
       </h3>
-      <div class="section-content">${report["අනාගතය"] || ''}</div>
+      <div class="section-content">${report["ඓතිහාසික පසුබිම"] || report.historicalContext || ''}</div>
     </div>
 
     <div class="report-footer">
@@ -397,17 +421,21 @@ function renderHouseDetailPanel(data, language) {
   const housePlanets = data.find(h => h.house === selectedHouse)?.planets || [];
   
   const descriptions = {
-    1: { en: 'House #1 typically governs personality and physical appearance', si: '1 වන භාවය සාමාන්‍යයෙන් පෞරුෂය සහ ශරීරය නියෝජනය කරයි' },
-    2: { en: 'House #2 typically governs wealth and family', si: '2 වන භාවය සාමාන්‍යයෙන් ධනය සහ පවුල නියෝජනය කරයි' },
-    4: { en: 'House #4 typically governs mother and fixed assets', si: '4 වන භාවය සාමාන්‍යයෙන් මව සහ ඉඩකඩම් නියෝජනය කරයි' }
+    1: { en: 'House #1 governs personality, physical appearance, and self-identity', si: '1 වන භාවය පෞරුෂය, ශාරීරික රූපය හා ස්වයං අනන්‍යතාවය නියෝජනය කරයි' },
+    2: { en: 'House #2 governs wealth, family, and speech', si: '2 වන භාවය ධනය, පවුල හා කථනය නියෝජනය කරයි' },
+    3: { en: 'House #3 governs siblings, courage, and communication', si: '3 වන භාවය සහෝදර, ධෛර්යය හා සන්නිවේදනය නියෝජනය කරයි' },
+    4: { en: 'House #4 governs mother, property, and inner peace', si: '4 වන භාවය මව, දේපළ හා අභ්‍යන්තර සාමය නියෝජනය කරයි' },
+    5: { en: 'House #5 governs education, children, and creativity', si: '5 වන භාවය අධ්‍යාපනය, දරුවන් හා නිර්මාණශීලීත්වය නියෝජනය කරයි' },
+    6: { en: 'House #6 governs health, enemies, and daily work', si: '6 වන භාවය සෞඛ්‍යය, සතුරන් හා දෛනික කටයුතු නියෝජනය කරයි' },
+    7: { en: 'House #7 governs marriage, partnerships, and relationships', si: '7 වන භාවය විවාහය, හවුල්කාරිත්ව හා සබඳතා නියෝජනය කරයි' },
+    8: { en: 'House #8 governs longevity, transformation, and hidden matters', si: '8 වන භාවය ආයුෂ, පරිවර්තනය හා සැඟවුණු කරුණු නියෝජනය කරයි' },
+    9: { en: 'House #9 governs fortune, higher learning, and spirituality', si: '9 වන භාවය වාසනාව, උසස් අධ්‍යාපනය හා අධ්‍යාත්මිකත්වය නියෝජනය කරයි' },
+    10: { en: 'House #10 governs career, status, and public image', si: '10 වන භාවය වෘත්තිය, තත්ත්වය හා ප්‍රසිද්ධ රූපය නියෝජනය කරයි' },
+    11: { en: 'House #11 governs gains, ambitions, and social networks', si: '11 වන භාවය ලාභ, අභිලාෂයන් හා සමාජ ජාල නියෝජනය කරයි' },
+    12: { en: 'House #12 governs expenses, liberation, and spirituality', si: '12 වන භාවය වියදම්, විමුක්තිය හා අධ්‍යාත්මිකත්වය නියෝජනය කරයි' }
   };
   
-  const defaultDesc = { 
-    en: `House #${selectedHouse} typically governs various life aspects`, 
-    si: `${selectedHouse} වන භාවය සාමාන්‍යයෙන් ජීවිතයේ විවිධ අංශ නියෝජනය කරයි` 
-  };
-  
-  const desc = descriptions[selectedHouse] || defaultDesc;
+  const desc = descriptions[selectedHouse];
   
   return `
     <div class="house-detail-panel">
