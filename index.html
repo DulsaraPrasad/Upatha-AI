@@ -223,6 +223,34 @@
         const genAI = new GoogleGenerativeAI(API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+        
+        // If DOM is already loaded (in case script loads after)
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+        
+        function initializeApp() {
+            // Initialize date and time
+            const now = new Date();
+            document.getElementById('birthDate').valueAsDate = now;
+            document.getElementById('birthTime').value = now.toTimeString().slice(0, 5);
+            
+            // Language toggle handler
+            document.getElementById('languageToggle').addEventListener('change', function() {
+                currentLang = this.checked ? 'si' : 'en';
+                updateLanguage();
+            });
+            
+            // Generate button handler
+            document.getElementById('generateBtn').addEventListener('click', handleGenerate);
+        }
+        
         // Translations
         const translations = {
             en: {
@@ -270,12 +298,6 @@
         };
 
         let currentLang = 'en';
-
-        // Language toggle handler
-        document.getElementById('languageToggle').addEventListener('change', function() {
-            currentLang = this.checked ? 'si' : 'en';
-            updateLanguage();
-        });
 
         function updateLanguage() {
             const lang = translations[currentLang];
@@ -537,7 +559,7 @@
             const birthTime = document.getElementById('birthTime').value;
             
             if (!birthDate || !birthTime) {
-                alert(currentLang === 'si' ? 'කරුණාකර සියලු ක්ෂේත්‍ර පුරවන්න' : 'Please fill all fields');
+        async function handleGenerate fill all fields');
                 return;
             }
             
@@ -575,12 +597,7 @@
                 alert(currentLang === 'si' ? 'දෝෂයක් ඇති විය. කරුණාකර නැවත උත්සාහ කරන්න.' : 'An error occurred. Please try again.');
                 document.getElementById('loadingSection').classList.add('hidden');
             }
-        });
-
-        // Initialize with current date and time
-        const now = new Date();
-        document.getElementById('birthDate').valueAsDate = now;
-        document.getElementById('birthTime').value = now.toTimeString().slice(0, 5);
+        }
     </script>
 </body>
 </html>
