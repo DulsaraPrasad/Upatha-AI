@@ -4,6 +4,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // 1. HARDCODED API KEY - Replace with your actual key
 const GEMINI_API_KEY = "AIzaSyBLdn4EsHcp6etwtfTpERV6WSTQOYN-HOU";
+const MODEL_PRIMARY = "gemini-3-deep-think";
+const MODEL_FALLBACK = "gemini-3-flash";
+const MODEL_LEGACY = "gemini-2.0-flash";
 
 // Planet metadata
 const PLANET_METADATA = {
@@ -110,64 +113,79 @@ async function generateDossier(input) {
   generateBtn.disabled = true;
   errorMessage.classList.add('hidden');
   
-  try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.0-flash-thinking-exp-1219"
-    });
-    
-    const languagePrompt = input.language === 'si' 
-      ? "Return all text content in formal, scholarly Sinhala (රාජකාරි භාෂාව)." 
-      : "Return all text content in high-end, sophisticated English.";
+  const genAI = new GoogleGenerativeAI({
+    apiKey: GEMINI_API_KEY,
+    apiVersion: "v1beta"
+  });
 
-    const prompt = `
-Generate a comprehensive "Life Dossier" for a person based on their birth details.
+  const sakalakalaPrompt = `
+ඔබ "සැකලකල" (Sakalakala) විශ්ලේෂකයෙක්. උපතේ සිට අනාගතය දක්වා සියලුම අංශ ගැඹුරු සිංහලින් විග්‍රහ කරන්න (රාජකාරි/අභ්‍යාස භාෂාව, ගුණාත්මක, 800+ වචන එකතුව).
 
-Birth Details:
-Name: ${input.name}
-Gender: ${input.gender}
-Birth Date: ${input.birthDate}
-Birth Time: ${input.birthTime}
+උපන් විස්තර:
+- නම: ${input.name}
+- ස්ත්‍රී/පුරුෂ භාවය: ${input.gender}
+- උපන් දිනය: ${input.birthDate}
+- උපන් වේලාව: ${input.birthTime}
 
-${languagePrompt}
+කාර්යය:
+1) සත්‍යමය වේද ජ්‍යෝතිෂ් ගණනයක් සිතා Lagna (Ascendant) හා ග්‍රහ පිහිටීම් තීරණය කර Hathara Kendraya 12 භව වල ග්‍රහ විඛ්‍යාපනය කරන්න.
+2) මෙම ග්‍රහ පිහිටීම් මත පදනම්ව පහත සිංහල ශීර්ෂයන් යටතේ විස්තර කරන්න:
+   - ලග්නය (Lagna): උඩඟු/මානසික මූල ගුණ හා 1 වන භාවයෙහි බලපෑම්.
+   - අධ්‍යාපනය (Education): 4/5 භව බලපෑම්, ඉගෙනීමේ රටා, වෘත්තීය යෝග්‍යතා.
+   - විවාහය සහ සහකරු (Marriage & Partner): 7 වන භාවය අනුව සහකරුගේ ගුණාංග සහ ගෘහස්ථ ජීවිතය.
+   - සෞඛ්‍යය (Health): 6/8 භව බලපෑම් මත ශාරීරික ශක්ති හා අවධානය කළ යුතු අංශ.
+   - අනාගතය (Future Outlook): දශක අනුව (0-10, 11-20, ... 71-80) ගමන, අභියෝග හා අවස්ථා.
+   - ඓතිහාසික පසුබිම (Historical Era): උපන් වසරේ ලෝක/දේශීය ඉතිහාසය, ශ්‍රී ලංකා සංස්කෘතික/සමාජ-ආර්ථික තත්ත්වය, තාක්ෂණ තත්ත්වය.
+3) Hathara Kendraya JSON දත්තය අවසානයේ එකම JSON වස්තුවක අවසන් යතුර ලෙස ලබා දෙන්න.
 
-The entire response must be a single JSON object with the specified keys. Each text-based section (excluding hatharaKendraya) should be between 200-300 words.
-
-IMPORTANT: Conduct deep astrological thinking to calculate the accurate planetary positions based on the birth date and time. Use your knowledge of Vedic astrology to determine the Ascendant (Lagna) and place planets in their correct houses (1-12).
-
-The astrological insights for Lagna, Education, Marriage, Health, and Future Outlook should be derived from the actual planetary positions you calculate in the 'hatharaKendraya' array.
-
-JSON Structure:
+ප්‍රතිදානය:
+- එකම JSON වස්තුවක් ලෙස, හිස් පේළි නැතිව, Hathara Kendraya අවසානයේ යතුරක් ලෙස.
+- උදාහරණ ව්‍යුහය:
 {
-  "historicalContext": "Detailed analysis of the birth year. Include major global events, specific insights into Sri Lankan culture and socio-economic climate of that era, and the state of technology at the time.",
-  "biorhythmPsychology": "Deep analysis based on the specific hour of birth (dawn, midnight, afternoon, etc.). Connect this to psychological archetypes and energy levels.",
-  "generationalIdentity": "Discuss how they fit into their specific social era (e.g., Baby Boomer, Gen X, Millennial, Zillennial, Gen Z, or Gen Alpha). Analyze the collective consciousness of their peers.",
-  "lagna": "Identify the Lagna (Ascendant) based on the birth time and provide a detailed description of its physical and mental nature. Analyze the influence of any planets posited in or aspecting the 1st house (Lagna) from the hatharaKendraya.",
-  "education": "Analyze the 4th and 5th house influences from the hatharaKendraya for academic success, potential field of study, learning style, and intellectual capabilities. Consider the planets in these houses and their lords.",
-  "marriageAndPartner": "Analyze the 7th house influences from the hatharaKendraya. Describe the personality, characteristics, and potential compatibility of the life partner. Discuss marital prospects and relationship dynamics based on the 7th house and its ruler.",
-  "health": "Based on the planetary positions throughout the hatharaKendraya, particularly in the 6th and 8th houses, identify potential physical strengths and areas requiring health caution or specific wellness practices. Provide general health insights.",
-  "futureOutlook": "Provide a decade-by-decade (e.g., 0-10, 11-20, ..., 71-80) outlook for the person's life path, highlighting key phases, challenges, and opportunities based on the calculated astrological influences from the entire hatharaKendraya. Conclude with an overall positive summary.",
+  "ලග්නය": "...",
+  "අධ්‍යාපනය": "...",
+  "විවාහය සහ සහකරු": "...",
+  "සෞඛ්‍යය": "...",
+  "අනාගතය": "...",
+  "ඓතිහාසික පසුබිම": "...",
   "hatharaKendraya": [
-    // An array of 12 objects, each with 'house' (1-12) and 'planets' (array of strings).
-    // Calculate and distribute planets (Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, Ketu)
-    // accurately across the 12 houses based on the birth date and time using Vedic astrology principles.
-    // Each object: { "house": 1, "planets": ["Sun", "Mercury"] }
+    { "house": 1, "planets": ["Sun", "Mercury"] },
+    ...
+    { "house": 12, "planets": ["Saturn"] }
   ]
 }
 `;
 
+  async function runModel(modelId) {
+    const model = genAI.getGenerativeModel({ model: modelId });
     const result = await model.generateContent({
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      contents: [{ role: "user", parts: [{ text: sakalakalaPrompt }] }],
       generationConfig: {
         temperature: 0.8,
         responseMimeType: "application/json",
       }
     });
-    
     const response = await result.response;
-    const jsonStr = response.text();
+    return response.text();
+  }
+
+  try {
+    let jsonStr;
+    try {
+      jsonStr = await runModel(MODEL_PRIMARY);
+    } catch (err) {
+      if (err?.message?.includes("404") || err?.message?.toLowerCase?.().includes("not found")) {
+        try {
+          jsonStr = await runModel(MODEL_FALLBACK);
+        } catch (fallbackErr) {
+          jsonStr = await runModel(MODEL_LEGACY);
+        }
+      } else {
+        throw err;
+      }
+    }
+
     console.log("AI Response:", jsonStr);
-    
     const data = JSON.parse(jsonStr);
     currentReport = data;
     
@@ -204,65 +222,49 @@ function renderReport(input, report) {
     <div class="report-section-wrapper section-border-left">
       <h3 class="section-title">
         <span class="section-number">01.</span>
-        ${isSinhala ? 'ඓතිහාසික සන්දර්භය' : 'Historical Context'}
+        ${isSinhala ? 'ඓතිහාසික පසුබිම' : 'Historical Era'}
       </h3>
-      <div class="section-content first-letter">${report.historicalContext}</div>
-    </div>
-
-    <div class="report-section-wrapper section-border-right">
-      <h3 class="section-title right">
-        ${isSinhala ? 'ජෛව රිද්මය සහ මනෝවිද්‍යාව' : 'Biorhythm & Psychology'}
-        <span class="section-number">02.</span>
-      </h3>
-      <div class="section-content">${report.biorhythmPsychology}</div>
-    </div>
-
-    <div class="report-section-wrapper section-border-left">
-      <h3 class="section-title">
-        <span class="section-number">03.</span>
-        ${isSinhala ? 'පරම්පරාගත අනන්‍යතාවය' : 'Generational Identity'}
-      </h3>
-      <div class="section-content">${report.generationalIdentity}</div>
+      <div class="section-content first-letter">${report["ඓතිහාසික පසුබිම"] || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-right">
       <h3 class="section-title right">
         ${isSinhala ? 'ලග්නය' : 'Ascendant (Lagna)'}
-        <span class="section-number">04.</span>
+        <span class="section-number">02.</span>
       </h3>
-      <div class="section-content">${report.lagna}</div>
+      <div class="section-content">${report["ලග්නය"] || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-left">
       <h3 class="section-title">
-        <span class="section-number">05.</span>
+        <span class="section-number">03.</span>
         ${isSinhala ? 'අධ්‍යාපනය' : 'Education'}
       </h3>
-      <div class="section-content">${report.education}</div>
+      <div class="section-content">${report["අධ්‍යාපනය"] || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-right">
       <h3 class="section-title right">
         ${isSinhala ? 'විවාහය සහ සහකරු' : 'Marriage & Partner'}
-        <span class="section-number">06.</span>
+        <span class="section-number">04.</span>
       </h3>
-      <div class="section-content">${report.marriageAndPartner}</div>
+      <div class="section-content">${report["විවාහය සහ සහකරු"] || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-left">
       <h3 class="section-title">
-        <span class="section-number">07.</span>
-        ${isSinhala ? 'සෞඛ්‍යය' : 'Health Outlook'}
+        <span class="section-number">05.</span>
+        ${isSinhala ? 'සෞඛ්‍යය' : 'Health'}
       </h3>
-      <div class="section-content">${report.health}</div>
+      <div class="section-content">${report["සෞඛ්‍යය"] || ''}</div>
     </div>
 
     <div class="report-section-wrapper section-border-right">
       <h3 class="section-title right">
         ${isSinhala ? 'අනාගතය' : 'Future Outlook'}
-        <span class="section-number">08.</span>
+        <span class="section-number">06.</span>
       </h3>
-      <div class="section-content">${report.futureOutlook}</div>
+      <div class="section-content">${report["අනාගතය"] || ''}</div>
     </div>
 
     <div class="report-footer">
